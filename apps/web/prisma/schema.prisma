@@ -1,0 +1,55 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model VideoTask {
+  id            String     @id @default(cuid())
+  title         String     @db.VarChar(255)
+  description   String?    @db.Text
+  composition   String     @db.VarChar(100)  // Remotion composition 名
+  props         Json                          // 传给 Remotion 的参数
+  status        TaskStatus @default(PENDING)
+  category      String?    @db.VarChar(50)
+  tags          String?    @db.VarChar(500)   // 逗号分隔
+  thumbnailUrl  String?    @db.VarChar(1000)
+  videoUrl      String?    @db.VarChar(1000) // R2/OSS/本地 URL
+  duration      Int?                          // 秒
+  githubRunId   String?    @db.VarChar(50)   // GitHub Actions Run ID
+  githubRunUrl  String?    @db.VarChar(500)
+  errorMessage  String?    @db.Text
+  priority      Int        @default(0)
+  viewCount     Int        @default(0)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  publishedAt   DateTime?
+
+  @@index([status])
+  @@index([category])
+  @@index([createdAt])
+}
+
+enum TaskStatus {
+  PENDING     // 等待触发
+  QUEUED      // 已触发 GitHub Actions
+  RENDERING   // 渲染中
+  UPLOADING   // 上传中
+  COMPLETED   // 完成
+  FAILED      // 失败
+}
+
+model Category {
+  id          String @id @default(cuid())
+  name        String @unique @db.VarChar(50)
+  slug        String @unique @db.VarChar(50)
+  description String? @db.Text
+  icon        String? @db.VarChar(100)
+  sortOrder   Int    @default(0)
+}
